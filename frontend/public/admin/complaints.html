@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grievance Management — CampusFix Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.625rem; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 0.25rem;">
+            Campus Maintenance Complaints Queue
+          </h1>
+          <p style="color: var(--color-text-muted); font-size: 0.875rem;">
+            Review, triage, prioritize, assign, and resolve campus facility reports.
+          </p>
+        </div>
+        <div>
+          <a href="/admin/dashboard.html" class="btn btn-secondary" style="font-size: 0.8125rem;">
+            &larr; Admin Overview
+          </a>
+        </div>
+      </div>
+
+      <!-- Advanced Filter Toolbar -->
+      <div class="card" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) auto; gap: 0.75rem; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0; grid-column: span 2;">
+            <label class="form-label" for="search-input" style="font-size: 0.75rem;">Search All Complaints</label>
+            <input class="form-input" type="text" id="search-input" placeholder="Search by title, student, code, or building...">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="status-filter" style="font-size: 0.75rem;">Status</label>
+            <select class="form-select" id="status-filter">
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Closed">Closed</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="priority-filter" style="font-size: 0.75rem;">Priority</label>
+            <select class="form-select" id="priority-filter">
+              <option value="">All Priorities</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="category-filter" style="font-size: 0.75rem;">Category</label>
+            <select class="form-select" id="category-filter">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="dept-filter" style="font-size: 0.75rem;">Department</label>
+            <select class="form-select" id="dept-filter">
+              <option value="">All Departments</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="sort-filter" style="font-size: 0.75rem;">Sort By</label>
+            <select class="form-select" id="sort-filter">
+              <option value="createdAt_DESC">Newest First</option>
+              <option value="createdAt_ASC">Oldest First</option>
+              <option value="priority_DESC">Highest Priority</option>
+              <option value="updatedAt_DESC">Recently Updated</option>
+            </select>
+          </div>
+
+          <div>
+            <button type="button" id="reset-filters-btn" class="btn btn-secondary" style="height: 40px; font-size: 0.8125rem;">
+              Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Complaints Data Table Card -->
+      <div class="card" style="padding: 1.5rem;">
+        <div id="table-loading" style="text-align: center; padding: 3rem 0;">
+          <div class="spinner"></div>
+          <p style="margin-top: 0.75rem; color: var(--color-text-muted); font-size: 0.875rem;">Loading grievances...</p>
+        </div>
+
+        <div id="table-wrapper" class="table-container" style="display: none;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Title & Location</th>
+                <th>Student</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Assigned Dept</th>
+                <th>Logged</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <p style="font-size: 1rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.25rem;">No matching grievances found</p>
+          <p id="empty-admin-msg" style="color: var(--color-text-muted); font-size: 0.875rem;">
+            Try clearing or adjusting search queries and filter options.
+          </p>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="pagination-wrapper" style="display: none; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border); flex-wrap: wrap; gap: 0.75rem;">
+          <div style="font-size: 0.8125rem; color: var(--color-text-muted);" id="pagination-info">
+            Showing 1 to 10 of 10 reports
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>&larr; Previous</button>
+            <span id="page-indicator" style="font-size: 0.8125rem; font-weight: 600; padding: 0 0.5rem;">Page 1 of 1</span>
+            <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Guard route: admin role required
+      const user = auth.requireAuth('admin');
+      if (!user) return;
+
+      components.renderNavbar();
+
+      const searchInput = document.getElementById('search-input');
+      const statusFilter = document.getElementById('status-filter');
+      const priorityFilter = document.getElementById('priority-filter');
+      const categoryFilter = document.getElementById('category-filter');
+      const deptFilter = document.getElementById('dept-filter');
+      const sortFilter = document.getElementById('sort-filter');
+      const resetBtn = document.getElementById('reset-filters-btn');
+
+      const tableLoading = document.getElementById('table-loading');
+      const tableWrapper = document.getElementById('table-wrapper');
+      const tbody = document.getElementById('complaints-tbody');
+      const emptyState = document.getElementById('empty-state');
+      const paginationWrapper = document.getElementById('pagination-wrapper');
+      const paginationInfo = document.getElementById('pagination-info');
+      const pageIndicator = document.getElementById('page-indicator');
+      const prevBtn = document.getElementById('prev-page-btn');
+      const nextBtn = document.getElementById('next-page-btn');
+
+      let currentPage = 1;
+      const limit = 10;
+      let debounceTimeout = null;
+
+      // 2. Load Categories & Departments
+      try {
+        const [catRes, deptRes] = await Promise.all([
+          api.get('/categories'),
+          api.get('/departments')
+        ]);
+
+        if (catRes.success && Array.isArray(catRes.data)) {
+          catRes.data.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            categoryFilter.appendChild(opt);
+          });
+        }
+
+        if (deptRes.success && Array.isArray(deptRes.data)) {
+          deptRes.data.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = d.name;
+            deptFilter.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load filter metadata', err);
+      }
+
+      // Check URL parameters for preset filters
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('status')) statusFilter.value = urlParams.get('status');
+      if (urlParams.get('priority')) priorityFilter.value = urlParams.get('priority');
+
+      // 3. Load Complaints
+      async function loadComplaints(page = 1) {
+        currentPage = page;
+        tableLoading.style.display = 'block';
+        tableWrapper.style.display = 'none';
+        emptyState.style.display = 'none';
+        paginationWrapper.style.display = 'none';
+
+        try {
+          const params = new URLSearchParams({
+            page: currentPage,
+            limit
+          });
+
+          const searchVal = searchInput.value.trim();
+          if (searchVal) params.append('search', searchVal);
+          if (statusFilter.value) params.append('status', statusFilter.value);
+          if (priorityFilter.value) params.append('priority', priorityFilter.value);
+          if (categoryFilter.value) params.append('categoryId', categoryFilter.value);
+          if (deptFilter.value) params.append('departmentId', deptFilter.value);
+
+          const [sortBy, sortOrder] = (sortFilter.value || 'createdAt_DESC').split('_');
+          params.append('sortBy', sortBy);
+          params.append('sortOrder', sortOrder);
+
+          const res = await api.get(`/admin/complaints?${params.toString()}`);
+          tableLoading.style.display = 'none';
+
+          if (res.success && res.data) {
+            const { complaints, total, totalPages } = res.data;
+
+            if (complaints.length === 0) {
+              emptyState.style.display = 'block';
+              const emptyMsg = document.getElementById('empty-admin-msg');
+              const hasFilters = Boolean(searchVal || statusFilter.value || priorityFilter.value || categoryFilter.value || deptFilter.value);
+              if (hasFilters && emptyMsg) {
+                emptyMsg.innerHTML = 'No grievances match your current search or filter criteria.<br><button type="button" class="btn btn-secondary btn-sm" style="margin-top: 0.75rem;" onclick="document.getElementById(\'reset-filters-btn\').click()">Reset All Filters</button>';
+              } else if (emptyMsg) {
+                emptyMsg.innerHTML = 'No campus maintenance grievances are currently logged in the queue.';
+              }
+              return;
+            }
+
+            tableWrapper.style.display = 'block';
+            tbody.innerHTML = complaints.map(c => `
+              <tr>
+                <td>
+                  <span style="font-family: monospace; font-weight: 700; color: var(--color-primary-light); font-size: 0.8125rem;">
+                    ${components.escapeHtml(c.complaintCode)}
+                  </span>
+                </td>
+                <td>
+                  <div style="font-weight: 600; color: var(--color-primary-dark); font-size: 0.875rem;">
+                    ${components.escapeHtml(c.title)}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                    ${components.escapeHtml(c.building)}${c.roomNumber ? ' &bull; Rm ' + components.escapeHtml(c.roomNumber) : ''}
+                  </div>
+                </td>
+                <td>
+                  <div style="font-size: 0.8125rem; font-weight: 500; color: var(--color-text);">
+                    ${components.escapeHtml(c.studentName || 'Student')}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                    ${components.escapeHtml(c.studentRollNo || c.studentEmail || '')}
+                  </div>
+                </td>
+                <td style="font-size: 0.8125rem; color: var(--color-text);">
+                  ${components.escapeHtml(c.categoryName || 'General')}
+                </td>
+                <td>${components.createPriorityTag(c.priority)}</td>
+                <td>${components.createBadge(c.status)}</td>
+                <td style="font-size: 0.8125rem; color: var(--color-text);">
+                  ${c.departmentName ? components.escapeHtml(c.departmentName) : '<span style="color: var(--color-text-muted); font-style: italic;">Unassigned</span>'}
+                </td>
+                <td style="font-size: 0.8125rem; color: var(--color-text-muted); white-space: nowrap;">
+                  ${components.formatDate(c.createdAt)}
+                </td>
+                <td style="text-align: right;">
+                  <a href="/admin/details.html?id=${c.id}" class="btn btn-primary btn-sm">
+                    Manage
+                  </a>
+                </td>
+              </tr>
+            `).join('');
+
+            // Pagination
+            if (total > 0) {
+              paginationWrapper.style.display = 'flex';
+              const startIdx = (currentPage - 1) * limit + 1;
+              const endIdx = Math.min(currentPage * limit, total);
+              paginationInfo.textContent = `Showing ${startIdx} to ${endIdx} of ${total} reports`;
+              pageIndicator.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+
+              prevBtn.disabled = currentPage <= 1;
+              nextBtn.disabled = currentPage >= totalPages;
+            }
+          }
+        } catch (err) {
+          tableLoading.innerHTML = `
+            <div style="color: var(--status-rejected); padding: 1.5rem;">
+              Failed to load complaints: ${components.escapeHtml(err.message || 'Server error')}
+            </div>
+          `;
+        }
+      }
+
+      // Filter change listeners
+      function triggerFilterChange() {
+        loadComplaints(1);
+      }
+
+      statusFilter.addEventListener('change', triggerFilterChange);
+      priorityFilter.addEventListener('change', triggerFilterChange);
+      categoryFilter.addEventListener('change', triggerFilterChange);
+      deptFilter.addEventListener('change', triggerFilterChange);
+      sortFilter.addEventListener('change', triggerFilterChange);
+
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(() => {
+          loadComplaints(1);
+        }, 350);
+      });
+
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        statusFilter.value = '';
+        priorityFilter.value = '';
+        categoryFilter.value = '';
+        deptFilter.value = '';
+        sortFilter.value = 'createdAt_DESC';
+        loadComplaints(1);
+      });
+
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) loadComplaints(currentPage - 1);
+      });
+
+      nextBtn.addEventListener('click', () => {
+        loadComplaints(currentPage + 1);
+      });
+
+      // Initial load
+      loadComplaints(1);
+    });
+  </script>
+</body>
+</html>

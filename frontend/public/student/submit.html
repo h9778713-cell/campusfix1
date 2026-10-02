@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report New Issue — CampusFix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content" style="padding: 2rem 1rem;">
+    <div class="container" style="max-width: 680px;">
+      <div style="margin-bottom: 1.5rem;">
+        <a href="/student/dashboard.html" style="font-size: 0.875rem; color: var(--color-primary-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+          &larr; Back to Dashboard
+        </a>
+        <h1 style="font-size: 1.625rem; font-weight: 800; color: var(--color-primary-dark); margin-top: 0.5rem; margin-bottom: 0.25rem;">
+          Report a Facility or Campus Issue
+        </h1>
+        <p style="color: var(--color-text-muted); font-size: 0.875rem;">
+          Submit a maintenance ticket. Campus facilities staff will be notified for resolution.
+        </p>
+      </div>
+
+      <div class="card" style="padding: 2rem;">
+        <div id="alert-box" style="display: none; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem;"></div>
+
+        <form id="complaint-form" novalidate>
+          <!-- Title -->
+          <div class="form-group">
+            <label class="form-label" for="title">Grievance Title <span style="color: var(--status-rejected);">*</span></label>
+            <input class="form-input" type="text" id="title" name="title" required placeholder="e.g. Broken water pipe flooding corridor">
+            <div id="err-title" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Category -->
+            <div class="form-group">
+              <label class="form-label" for="categoryId">Category <span style="color: var(--status-rejected);">*</span></label>
+              <select class="form-select" id="categoryId" name="categoryId" required>
+                <option value="">Select category...</option>
+              </select>
+              <div id="err-categoryId" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+
+            <!-- Priority -->
+            <div class="form-group">
+              <label class="form-label" for="priority">Urgency / Priority <span style="color: var(--status-rejected);">*</span></label>
+              <select class="form-select" id="priority" name="priority" required>
+                <option value="Low">Low — Minor inconvenience</option>
+                <option value="Medium" selected>Medium — Standard repair</option>
+                <option value="High">High — Disruptive issue</option>
+                <option value="Critical">Critical — Immediate safety hazard</option>
+              </select>
+              <div id="err-priority" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Building -->
+            <div class="form-group">
+              <label class="form-label" for="building">Building / Location <span style="color: var(--status-rejected);">*</span></label>
+              <input class="form-input" type="text" id="building" name="building" required placeholder="e.g. Engineering Block 2, Library">
+              <div id="err-building" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+
+            <!-- Room -->
+            <div class="form-group">
+              <label class="form-label" for="roomNumber">Room / Lab Number <span style="color: var(--color-text-muted); font-size: 0.75rem;">(Optional)</span></label>
+              <input class="form-input" type="text" id="roomNumber" name="roomNumber" placeholder="e.g. Rm 304 or 2nd Fl Corridor">
+              <div id="err-roomNumber" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label class="form-label" for="description">Detailed Description <span style="color: var(--status-rejected);">*</span></label>
+            <textarea class="form-textarea" id="description" name="description" rows="4" required placeholder="Describe the problem, hazard details, and any specific landmarks or access constraints..."></textarea>
+            <div id="err-description" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <!-- Image Upload Dropzone -->
+          <div class="form-group">
+            <label class="form-label">Attach Photo Evidence <span style="color: var(--color-text-muted); font-size: 0.75rem;">(Optional, max 5MB — JPG, PNG, WEBP)</span></label>
+            <div id="dropzone" class="upload-dropzone">
+              <input type="file" id="image-file" name="image" accept="image/jpeg,image/png,image/webp" style="display: none;">
+              <div id="dropzone-prompt">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 0.5rem;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div style="font-weight: 600; font-size: 0.875rem; color: var(--color-primary-dark);">
+                  Click to browse or drag and drop an image
+                </div>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+                  JPEG, PNG, or WEBP up to 5 MB
+                </div>
+              </div>
+
+              <!-- Preview section -->
+              <div id="preview-section" style="display: none; align-items: center; justify-content: center; flex-direction: column; gap: 0.75rem;">
+                <img id="image-preview" src="#" alt="Preview" style="max-height: 180px; max-width: 100%; border-radius: var(--radius-md); object-fit: contain; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span id="file-name-display" style="font-size: 0.75rem; color: var(--color-text-muted); font-family: monospace;"></span>
+                  <button type="button" id="remove-img-btn" class="btn btn-secondary btn-sm" style="color: var(--status-rejected); padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div id="err-image" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 2rem;">
+            <a href="/student/dashboard.html" class="btn btn-secondary">Cancel</a>
+            <button type="submit" id="submit-btn" class="btn btn-primary" style="min-width: 150px;">
+              <span>Submit Ticket</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Guard route: student role required
+      const user = auth.requireAuth('student');
+      if (!user) return;
+
+      components.renderNavbar();
+
+      const form = document.getElementById('complaint-form');
+      const categorySelect = document.getElementById('categoryId');
+      const alertBox = document.getElementById('alert-box');
+      const submitBtn = document.getElementById('submit-btn');
+
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('image-file');
+      const dropzonePrompt = document.getElementById('dropzone-prompt');
+      const previewSection = document.getElementById('preview-section');
+      const imagePreview = document.getElementById('image-preview');
+      const fileNameDisplay = document.getElementById('file-name-display');
+      const removeImgBtn = document.getElementById('remove-img-btn');
+
+      let selectedFile = null;
+
+      // 2. Fetch categories
+      try {
+        const catRes = await api.get('/categories');
+        if (catRes.success && Array.isArray(catRes.data)) {
+          catRes.data.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.name;
+            categorySelect.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        showAlert('Failed to load categories. Please refresh the page.', 'error');
+      }
+
+      // 3. Dropzone interactions
+      dropzone.addEventListener('click', (e) => {
+        if (e.target !== removeImgBtn) {
+          fileInput.click();
+        }
+      });
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+          handleFile(fileInput.files[0]);
+        }
+      });
+
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+      function handleFile(file) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+          showFieldError('image', 'Please select a valid image file (JPEG, PNG, or WEBP).');
+          return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+          showFieldError('image', 'File size exceeds maximum limit of 5 MB.');
+          return;
+        }
+
+        clearFieldError('image');
+        selectedFile = file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          imagePreview.src = e.target.result;
+          fileNameDisplay.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          dropzonePrompt.style.display = 'none';
+          previewSection.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      removeImgBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedFile = null;
+        fileInput.value = '';
+        imagePreview.src = '#';
+        previewSection.style.display = 'none';
+        dropzonePrompt.style.display = 'block';
+        clearFieldError('image');
+      });
+
+      function clearErrors() {
+        alertBox.style.display = 'none';
+        document.querySelectorAll('.form-error').forEach(el => {
+          el.style.display = 'none';
+          el.textContent = '';
+        });
+        document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(el => el.classList.remove('error'));
+      }
+
+      function showFieldError(field, msg) {
+        const errEl = document.getElementById(`err-${field}`);
+        const inputEl = document.getElementById(field);
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.style.display = 'block';
+        }
+        if (inputEl) {
+          inputEl.classList.add('error');
+        }
+      }
+
+      function clearFieldError(field) {
+        const errEl = document.getElementById(`err-${field}`);
+        const inputEl = document.getElementById(field);
+        if (errEl) {
+          errEl.textContent = '';
+          errEl.style.display = 'none';
+        }
+        if (inputEl) {
+          inputEl.classList.remove('error');
+        }
+      }
+
+      function showAlert(msg, type = 'error') {
+        alertBox.style.display = 'block';
+        alertBox.textContent = msg;
+        if (type === 'error') {
+          alertBox.style.backgroundColor = 'var(--status-rejected-bg)';
+          alertBox.style.color = 'var(--status-rejected)';
+          alertBox.style.border = '1px solid #fca5a5';
+        } else {
+          alertBox.style.backgroundColor = 'var(--status-resolved-bg)';
+          alertBox.style.color = 'var(--status-resolved)';
+          alertBox.style.border = '1px solid #86efac';
+        }
+      }
+
+      // 4. Form Submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearErrors();
+
+        const title = document.getElementById('title').value.trim();
+        const categoryId = document.getElementById('categoryId').value;
+        const priority = document.getElementById('priority').value;
+        const building = document.getElementById('building').value.trim();
+        const roomNumber = document.getElementById('roomNumber').value.trim();
+        const description = document.getElementById('description').value.trim();
+
+        let hasError = false;
+
+        if (!title) {
+          showFieldError('title', 'Please provide a title for the issue.');
+          hasError = true;
+        } else if (title.length < 5 || title.length > 200) {
+          showFieldError('title', 'Title must be between 5 and 200 characters.');
+          hasError = true;
+        }
+
+        if (!categoryId) {
+          showFieldError('categoryId', 'Please select an active maintenance category.');
+          hasError = true;
+        }
+
+        if (!building) {
+          showFieldError('building', 'Please specify the building or campus location.');
+          hasError = true;
+        } else if (building.length < 2 || building.length > 120) {
+          showFieldError('building', 'Building name must be between 2 and 120 characters.');
+          hasError = true;
+        }
+
+        if (roomNumber && roomNumber.length > 50) {
+          showFieldError('roomNumber', 'Room number cannot exceed 50 characters.');
+          hasError = true;
+        }
+
+        if (!description) {
+          showFieldError('description', 'Please provide details describing the issue.');
+          hasError = true;
+        } else if (description.length < 10 || description.length > 3000) {
+          showFieldError('description', 'Description must be between 10 and 3000 characters.');
+          hasError = true;
+        }
+
+        if (selectedFile) {
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+          if (!validTypes.includes(selectedFile.type)) {
+            showFieldError('image', 'Selected photo must be JPEG, PNG, or WEBP.');
+            hasError = true;
+          } else if (selectedFile.size > 5 * 1024 * 1024) {
+            showFieldError('image', 'File size exceeds maximum limit of 5 MB.');
+            hasError = true;
+          }
+        }
+
+        if (hasError) return;
+
+        components.setButtonLoading(submitBtn, true, 'Submitting Issue...');
+
+        try {
+          const formData = new FormData();
+          formData.append('title', title);
+          formData.append('categoryId', categoryId);
+          formData.append('priority', priority);
+          formData.append('building', building);
+          if (roomNumber) formData.append('roomNumber', roomNumber);
+          formData.append('description', description);
+
+          if (selectedFile) {
+            formData.append('image', selectedFile);
+          }
+
+          const res = await api.upload('/complaints', formData);
+
+          if (res.success && res.data) {
+            showAlert('Complaint submitted successfully! Redirecting...', 'success');
+            components.showToast('Grievance logged: ' + (res.data.complaintCode || ''), 'success');
+            setTimeout(() => {
+              window.location.href = `/student/details.html?id=${res.data.id}`;
+            }, 1000);
+          }
+        } catch (err) {
+          components.setButtonLoading(submitBtn, false, 'Submit Ticket');
+
+          if (err.details && typeof err.details === 'object' && !Array.isArray(err.details)) {
+            for (const [key, msg] of Object.entries(err.details)) {
+              showFieldError(key, msg);
+            }
+            showAlert(err.message || 'Please fix the errors below.');
+          } else {
+            showAlert(api.getErrorMessage(err));
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

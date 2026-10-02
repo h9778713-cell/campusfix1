@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grievance Details — CampusFix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content" style="padding: 2rem 1rem;">
+    <div class="container" style="max-width: 900px;">
+      <!-- Breadcrumb -->
+      <div style="margin-bottom: 1.25rem;">
+        <a href="/student/complaints.html" style="font-size: 0.875rem; color: var(--color-primary-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">
+          &larr; Back to My Grievances
+        </a>
+      </div>
+
+      <!-- Loading State -->
+      <div id="page-loading" style="text-align: center; padding: 4rem 0;">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: var(--color-text-muted); font-size: 0.875rem;">Loading grievance details...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-card" class="card" style="display: none; padding: 2rem; text-align: center;">
+        <div style="color: var(--status-rejected); font-weight: 700; font-size: 1.125rem; margin-bottom: 0.5rem;" id="error-title">
+          Error Loading Grievance
+        </div>
+        <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;" id="error-msg">
+          Unable to find or load the requested ticket.
+        </p>
+        <a href="/student/complaints.html" class="btn btn-secondary">Return to Grievances</a>
+      </div>
+
+      <!-- Main Complaint Content -->
+      <div id="content-container" style="display: none;">
+        <!-- Header Card -->
+        <div class="card" style="padding: 1.75rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                <span id="c-code" style="font-family: monospace; font-size: 1.125rem; font-weight: 800; color: var(--color-primary-dark); background-color: var(--color-bg); padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+                </span>
+                <span id="c-status"></span>
+                <span id="c-priority"></span>
+              </div>
+              <h1 id="c-title" style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary-dark); margin: 0.25rem 0;"></h1>
+            </div>
+
+            <div style="text-align: right; font-size: 0.8125rem; color: var(--color-text-muted);">
+              <div>Logged: <span id="c-created" style="font-weight: 600; color: var(--color-text);"></span></div>
+              <div style="margin-top: 0.25rem;">Last update: <span id="c-updated" style="font-weight: 600; color: var(--color-text);"></span></div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border); font-size: 0.875rem;">
+            <div>
+              <span style="color: var(--color-text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Category</span>
+              <strong id="c-category" style="color: var(--color-primary-dark);"></strong>
+            </div>
+            <div>
+              <span style="color: var(--color-text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Location</span>
+              <strong id="c-location" style="color: var(--color-primary-dark);"></strong>
+            </div>
+            <div>
+              <span style="color: var(--color-text-muted); display: block; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Assigned Team</span>
+              <strong id="c-assignment" style="color: var(--color-primary-dark);">None Assigned</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+          <!-- Left Column: Description, Evidence, Comments -->
+          <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Description -->
+            <div class="card" style="padding: 1.5rem;">
+              <h2 style="font-size: 1.0625rem; font-weight: 700; color: var(--color-primary-dark); margin-bottom: 0.75rem;">
+                Issue Description
+              </h2>
+              <div id="c-desc" style="font-size: 0.9375rem; line-height: 1.6; color: var(--color-text); white-space: pre-wrap;"></div>
+            </div>
+
+            <!-- Evidence Photo -->
+            <div class="card" style="padding: 1.5rem;">
+              <h2 style="font-size: 1.0625rem; font-weight: 700; color: var(--color-primary-dark); margin-bottom: 0.75rem;">
+                Photo Evidence
+              </h2>
+              <div id="evidence-container">
+                <div id="no-photo-msg" style="color: var(--color-text-muted); font-size: 0.875rem; font-style: italic; margin-bottom: 1rem;">
+                  No photo was attached with this report.
+                </div>
+                <div id="photo-preview-wrap" style="display: none;">
+                  <img id="evidence-img" src="#" alt="Evidence" style="max-height: 240px; border-radius: var(--radius-md); cursor: pointer; box-shadow: var(--shadow-sm); border: 1px solid var(--color-border); object-fit: cover;">
+                  <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+                    Click image to expand full-size.
+                  </div>
+                </div>
+
+                <!-- Add/Update Photo -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                  <button type="button" id="toggle-upload-btn" class="btn btn-secondary btn-sm">
+                    Upload / Replace Photo
+                  </button>
+                  <form id="upload-photo-form" style="display: none; margin-top: 0.75rem;" enctype="multipart/form-data">
+                    <input type="file" id="new-photo-file" accept="image/jpeg,image/png,image/webp" class="form-input" style="font-size: 0.8125rem; margin-bottom: 0.5rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                      <button type="submit" id="save-photo-btn" class="btn btn-primary btn-sm">Save Image</button>
+                      <button type="button" id="cancel-photo-btn" class="btn btn-secondary btn-sm">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Threaded Comments -->
+            <div class="card" style="padding: 1.5rem;">
+              <h2 style="font-size: 1.0625rem; font-weight: 700; color: var(--color-primary-dark); margin-bottom: 1rem;">
+                Discussion & Updates
+              </h2>
+
+              <div id="comments-list" class="comments-list" style="margin-bottom: 1.5rem;"></div>
+
+              <!-- Add Comment Form -->
+              <form id="comment-form">
+                <div class="form-group" style="margin-bottom: 0.75rem;">
+                  <label class="form-label" for="comment-text" style="font-size: 0.8125rem;">Add a Note or Reply</label>
+                  <textarea class="form-textarea" id="comment-text" rows="3" required placeholder="Type your comment or update for the facilities team..."></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end;">
+                  <button type="submit" id="submit-comment-btn" class="btn btn-primary btn-sm">
+                    Post Comment
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Right Column: Status Audit Timeline -->
+          <div>
+            <div class="card" style="padding: 1.5rem;">
+              <h2 style="font-size: 1.0625rem; font-weight: 700; color: var(--color-primary-dark); margin-bottom: 1rem;">
+                Status History
+              </h2>
+              <div id="timeline-container" class="timeline"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Guard route
+      const user = auth.requireAuth('student');
+      if (!user) return;
+
+      components.renderNavbar();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const complaintId = urlParams.get('id');
+
+      if (!complaintId) {
+        window.location.href = '/student/complaints.html';
+        return;
+      }
+
+      const pageLoading = document.getElementById('page-loading');
+      const errorCard = document.getElementById('error-card');
+      const errorTitle = document.getElementById('error-title');
+      const errorMsg = document.getElementById('error-msg');
+      const contentContainer = document.getElementById('content-container');
+
+      let currentComplaint = null;
+
+      // 2. Fetch complaint data
+      async function loadComplaint() {
+        try {
+          const res = await api.get(`/complaints/${complaintId}`);
+          pageLoading.style.display = 'none';
+
+          if (res.success && res.data) {
+            currentComplaint = res.data;
+            renderComplaint(currentComplaint);
+            contentContainer.style.display = 'block';
+          }
+        } catch (err) {
+          pageLoading.style.display = 'none';
+          errorCard.style.display = 'block';
+          if (err.status === 403) {
+            errorTitle.textContent = 'Access Restricted';
+            errorMsg.textContent = 'You do not have permission to view this complaint ticket.';
+          } else if (err.status === 404) {
+            errorTitle.textContent = 'Grievance Not Found';
+            errorMsg.textContent = `No complaint found with ID #${complaintId}.`;
+          } else {
+            errorTitle.textContent = 'Connection Error';
+            errorMsg.textContent = err.message || 'Unable to retrieve grievance details.';
+          }
+        }
+      }
+
+      // 3. Render Complaint details
+      function renderComplaint(c) {
+        document.getElementById('c-code').textContent = c.complaintCode;
+        document.getElementById('c-status').innerHTML = components.createBadge(c.status);
+        document.getElementById('c-priority').innerHTML = components.createPriorityTag(c.priority);
+        document.getElementById('c-title').textContent = c.title;
+        document.getElementById('c-created').textContent = components.formatDate(c.createdAt);
+        document.getElementById('c-updated').textContent = components.formatDate(c.updatedAt);
+        document.getElementById('c-category').textContent = c.categoryName || 'General';
+        
+        let loc = c.building || 'Campus';
+        if (c.roomNumber) loc += ` (Room ${c.roomNumber})`;
+        document.getElementById('c-location').textContent = loc;
+
+        // Assignment
+        if (c.assignment && c.assignment.departmentName) {
+          let assignText = c.assignment.departmentName;
+          if (c.assignment.assignedToName) {
+            assignText += ` (${c.assignment.assignedToName})`;
+          }
+          document.getElementById('c-assignment').textContent = assignText;
+        } else {
+          document.getElementById('c-assignment').textContent = 'Pending Assignment';
+        }
+
+        document.getElementById('c-desc').textContent = c.description;
+
+        // Photo
+        const noPhoto = document.getElementById('no-photo-msg');
+        const photoWrap = document.getElementById('photo-preview-wrap');
+        const evidenceImg = document.getElementById('evidence-img');
+
+        if (c.imageUrl) {
+          noPhoto.style.display = 'none';
+          photoWrap.style.display = 'block';
+          const token = api.getToken();
+          const imgUrlWithAuth = token ? `${c.imageUrl}?token=${encodeURIComponent(token)}` : c.imageUrl;
+          evidenceImg.src = imgUrlWithAuth;
+          evidenceImg.onclick = () => {
+            components.showModal({
+              title: `Evidence: ${c.complaintCode}`,
+              content: `<div style="text-align: center;"><img src="${imgUrlWithAuth}" style="max-width: 100%; max-height: 70vh; border-radius: var(--radius-md);" alt="Evidence"></div>`,
+              confirmText: 'Close'
+            });
+          };
+        } else {
+          noPhoto.style.display = 'block';
+          photoWrap.style.display = 'none';
+        }
+
+        // Status Timeline
+        renderTimeline(c.history || []);
+
+        // Comments
+        renderComments(c.comments || []);
+      }
+
+      // 4. Status History Timeline
+      function renderTimeline(history) {
+        const timeline = document.getElementById('timeline-container');
+        if (!history || history.length === 0) {
+          timeline.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.8125rem;">No status history recorded yet.</p>';
+          return;
+        }
+
+        timeline.innerHTML = history.map((item, idx) => `
+          <div class="timeline-item">
+            <div class="timeline-dot ${idx === history.length - 1 ? 'active' : ''}"></div>
+            <div class="timeline-date">${components.formatDate(item.createdAt)}</div>
+            <div class="timeline-title">
+              ${item.fromStatus ? `${components.escapeHtml(item.fromStatus)} &rarr; ` : ''}<strong>${components.escapeHtml(item.toStatus)}</strong>
+            </div>
+            ${item.remarks ? `<div class="timeline-desc">${components.escapeHtml(item.remarks)}</div>` : ''}
+            <div style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+              By: ${components.escapeHtml(item.changedByName || 'System')} (${components.escapeHtml(item.changedByRole || 'Admin')})
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 5. Comments
+      function renderComments(comments) {
+        const list = document.getElementById('comments-list');
+        if (!comments || comments.length === 0) {
+          list.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.875rem; font-style: italic;">No comments yet. Have a question or update? Post below.</p>';
+          return;
+        }
+
+        list.innerHTML = comments.map(cm => `
+          <div class="comment-item">
+            <div class="comment-header">
+              <span class="comment-author">
+                ${components.escapeHtml(cm.authorName || 'Campus Staff')}
+                <span style="font-size: 0.6875rem; padding: 0.15rem 0.4rem; border-radius: 9999px; background-color: var(--color-bg); border: 1px solid var(--color-border); text-transform: uppercase;">
+                  ${components.escapeHtml(cm.authorRole || 'User')}
+                </span>
+              </span>
+              <span class="comment-time">${components.formatDate(cm.createdAt)}</span>
+            </div>
+            <div class="comment-body">
+              ${components.escapeHtml(cm.commentText || cm.message)}
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // 6. Post Comment
+      const commentForm = document.getElementById('comment-form');
+      const commentText = document.getElementById('comment-text');
+      const submitCommentBtn = document.getElementById('submit-comment-btn');
+
+      commentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = commentText.value.trim();
+        if (!msg) {
+          components.showToast('Please enter a comment message.', 'warning');
+          commentText.focus();
+          return;
+        }
+        if (msg.length < 2 || msg.length > 2000) {
+          components.showToast('Comment must be between 2 and 2000 characters.', 'warning');
+          commentText.focus();
+          return;
+        }
+
+        components.setButtonLoading(submitCommentBtn, true, 'Posting...');
+
+        try {
+          const res = await api.post(`/complaints/${complaintId}/comments`, {
+            commentText: msg
+          });
+
+          if (res.success && res.data) {
+            commentText.value = '';
+            components.showToast('Comment posted successfully', 'success');
+            // Refresh comments list
+            const updatedCommentsRes = await api.get(`/complaints/${complaintId}/comments`);
+            if (updatedCommentsRes.success) {
+              renderComments(updatedCommentsRes.data);
+            }
+          }
+        } catch (err) {
+          components.showToast(api.getErrorMessage(err), 'error');
+        } finally {
+          components.setButtonLoading(submitCommentBtn, false, 'Post Comment');
+        }
+      });
+
+      // 7. Upload Photo Toggle
+      const toggleUploadBtn = document.getElementById('toggle-upload-btn');
+      const uploadPhotoForm = document.getElementById('upload-photo-form');
+      const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
+      const newPhotoFile = document.getElementById('new-photo-file');
+      const savePhotoBtn = document.getElementById('save-photo-btn');
+
+      toggleUploadBtn.addEventListener('click', () => {
+        uploadPhotoForm.style.display = 'block';
+        toggleUploadBtn.style.display = 'none';
+      });
+
+      cancelPhotoBtn.addEventListener('click', () => {
+        uploadPhotoForm.style.display = 'none';
+        toggleUploadBtn.style.display = 'inline-block';
+        newPhotoFile.value = '';
+      });
+
+      uploadPhotoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!newPhotoFile.files || !newPhotoFile.files[0]) {
+          components.showToast('Please select an image file first.', 'error');
+          return;
+        }
+
+        const file = newPhotoFile.files[0];
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+          components.showToast('Selected file must be a JPEG, PNG, or WEBP image.', 'error');
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          components.showToast('Image file size exceeds the 5 MB limit.', 'error');
+          return;
+        }
+
+        components.setButtonLoading(savePhotoBtn, true, 'Uploading...');
+
+        try {
+          const fd = new FormData();
+          fd.append('image', file);
+
+          const res = await api.upload(`/complaints/${complaintId}/image`, fd);
+          if (res.success) {
+            components.showToast('Photo uploaded successfully', 'success');
+            uploadPhotoForm.style.display = 'none';
+            toggleUploadBtn.style.display = 'inline-block';
+            newPhotoFile.value = '';
+            // Reload complaint details
+            await loadComplaint();
+          }
+        } catch (err) {
+          components.showToast(api.getErrorMessage(err), 'error');
+        } finally {
+          components.setButtonLoading(savePhotoBtn, false, 'Save Image');
+        }
+      });
+
+      // Initial load
+      loadComplaint();
+    });
+  </script>
+</body>
+</html>

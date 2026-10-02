@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration — CampusFix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content" style="display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
+    <div class="container" style="max-width: 520px;">
+      <div class="card" style="padding: 2.25rem 2rem;">
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 0.5rem;">Create Student Account</h1>
+          <p style="font-size: 0.875rem; color: var(--color-text-muted);">Register to report campus maintenance issues and track resolutions</p>
+        </div>
+
+        <div id="alert-box" style="display: none; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem;"></div>
+
+        <form id="register-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="fullName">Full Name <span style="color: var(--status-rejected);">*</span></label>
+            <input class="form-input" type="text" id="fullName" name="fullName" required placeholder="e.g. John Doe">
+            <div id="err-fullName" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">University Email <span style="color: var(--status-rejected);">*</span></label>
+            <input class="form-input" type="email" id="email" name="email" required autocomplete="email" placeholder="student@campusfix.edu">
+            <div id="err-email" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+              <label class="form-label" for="studentId">Student ID / Roll No <span style="color: var(--status-rejected);">*</span></label>
+              <input class="form-input" type="text" id="studentId" name="studentId" required placeholder="e.g. STU-2024-001">
+              <div id="err-studentId" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number <span style="color: var(--color-text-muted); font-size: 0.75rem;">(Optional)</span></label>
+              <input class="form-input" type="tel" id="phone" name="phone" placeholder="+1-555-0199">
+              <div id="err-phone" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password <span style="color: var(--status-rejected);">*</span></label>
+            <div class="input-password-wrapper">
+              <input class="form-input" type="password" id="password" name="password" required autocomplete="new-password" placeholder="••••••••••••">
+              <button type="button" id="toggle-pwd-btn" class="btn-password-toggle">Show</button>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.25rem;">
+              Must be at least 8 chars with uppercase, lowercase, number, and special character.
+            </div>
+            <div id="err-password" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm Password <span style="color: var(--status-rejected);">*</span></label>
+            <div class="input-password-wrapper">
+              <input class="form-input" type="password" id="confirmPassword" name="confirmPassword" required autocomplete="new-password" placeholder="••••••••••••">
+              <button type="button" id="toggle-confirm-btn" class="btn-password-toggle">Show</button>
+            </div>
+            <div id="err-confirmPassword" class="form-error" style="display: none; color: var(--status-rejected); font-size: 0.75rem; margin-top: 0.25rem;"></div>
+          </div>
+
+          <div style="margin-top: 1.5rem;">
+            <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%;">
+              <span>Create Account</span>
+            </button>
+          </div>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--color-border); padding-top: 1.25rem;">
+          <p style="font-size: 0.875rem; color: var(--color-text-muted);">
+            Already have an account? <a href="/login.html" style="color: var(--color-primary-light); font-weight: 600; text-decoration: none;">Sign in here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      auth.requireGuest();
+      components.renderNavbar();
+
+      const alertBox = document.getElementById('alert-box');
+      const form = document.getElementById('register-form');
+      const submitBtn = document.getElementById('submit-btn');
+
+      const pwdInput = document.getElementById('password');
+      const togglePwdBtn = document.getElementById('toggle-pwd-btn');
+      const confirmInput = document.getElementById('confirmPassword');
+      const toggleConfirmBtn = document.getElementById('toggle-confirm-btn');
+
+      // Toggles
+      togglePwdBtn.addEventListener('click', () => {
+        if (pwdInput.type === 'password') {
+          pwdInput.type = 'text';
+          togglePwdBtn.textContent = 'Hide';
+        } else {
+          pwdInput.type = 'password';
+          togglePwdBtn.textContent = 'Show';
+        }
+      });
+
+      toggleConfirmBtn.addEventListener('click', () => {
+        if (confirmInput.type === 'password') {
+          confirmInput.type = 'text';
+          toggleConfirmBtn.textContent = 'Hide';
+        } else {
+          confirmInput.type = 'password';
+          toggleConfirmBtn.textContent = 'Show';
+        }
+      });
+
+      function clearErrors() {
+        alertBox.style.display = 'none';
+        document.querySelectorAll('.form-error').forEach(el => {
+          el.style.display = 'none';
+          el.textContent = '';
+        });
+        document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+      }
+
+      function showFieldError(field, msg) {
+        const errEl = document.getElementById(`err-${field}`);
+        const inputEl = document.getElementById(field);
+        if (errEl) {
+          errEl.textContent = msg;
+          errEl.style.display = 'block';
+        }
+        if (inputEl) {
+          inputEl.classList.add('error');
+        }
+      }
+
+      function showAlert(msg, type = 'error') {
+        alertBox.style.display = 'block';
+        alertBox.textContent = msg;
+        if (type === 'error') {
+          alertBox.style.backgroundColor = 'var(--status-rejected-bg)';
+          alertBox.style.color = 'var(--status-rejected)';
+          alertBox.style.border = '1px solid #fca5a5';
+        } else {
+          alertBox.style.backgroundColor = 'var(--status-resolved-bg)';
+          alertBox.style.color = 'var(--status-resolved)';
+          alertBox.style.border = '1px solid #86efac';
+        }
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearErrors();
+
+        const fullName = document.getElementById('fullName').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const studentId = document.getElementById('studentId').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const password = pwdInput.value;
+        const confirmPassword = confirmInput.value;
+
+        let hasError = false;
+
+        if (!fullName) {
+          showFieldError('fullName', 'Full name is required.');
+          hasError = true;
+        } else if (fullName.length < 2 || fullName.length > 150) {
+          showFieldError('fullName', 'Full name must be between 2 and 150 characters.');
+          hasError = true;
+        }
+
+        if (!email) {
+          showFieldError('email', 'Email address is required.');
+          hasError = true;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          showFieldError('email', 'Please enter a valid university email address.');
+          hasError = true;
+        } else if (email.length > 255) {
+          showFieldError('email', 'Email address cannot exceed 255 characters.');
+          hasError = true;
+        }
+
+        if (!studentId) {
+          showFieldError('studentId', 'Student ID / Roll number is required.');
+          hasError = true;
+        } else if (studentId.length < 3 || studentId.length > 50) {
+          showFieldError('studentId', 'Student ID must be between 3 and 50 characters.');
+          hasError = true;
+        }
+
+        if (phone && !/^\+?[0-9\s\-()]{7,25}$/.test(phone)) {
+          showFieldError('phone', 'Please enter a valid phone number (7-25 digits) or leave blank.');
+          hasError = true;
+        }
+
+        if (!password) {
+          showFieldError('password', 'Password is required.');
+          hasError = true;
+        } else {
+          const passReqs = [];
+          if (password.length < 8) passReqs.push('at least 8 characters');
+          if (!/[A-Z]/.test(password)) passReqs.push('one uppercase letter');
+          if (!/[a-z]/.test(password)) passReqs.push('one lowercase letter');
+          if (!/[0-9]/.test(password)) passReqs.push('one number');
+          if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) passReqs.push('one special character');
+
+          if (passReqs.length > 0) {
+            showFieldError('password', `Password requires: ${passReqs.join(', ')}.`);
+            hasError = true;
+          }
+        }
+
+        if (!confirmPassword) {
+          showFieldError('confirmPassword', 'Please confirm your password.');
+          hasError = true;
+        } else if (password !== confirmPassword) {
+          showFieldError('confirmPassword', 'Passwords do not match.');
+          hasError = true;
+        }
+
+        if (hasError) return;
+
+        components.setButtonLoading(submitBtn, true, 'Creating Account...');
+
+        try {
+          const payload = {
+            fullName,
+            email,
+            studentId,
+            password
+          };
+          if (phone) payload.phone = phone;
+
+          const res = await api.post('/auth/register', payload);
+
+          if (res.success) {
+            showAlert('Account created successfully! Redirecting to sign in...', 'success');
+            components.showToast('Registration successful! Please sign in.', 'success');
+            setTimeout(() => {
+              window.location.href = '/login.html?registered=true';
+            }, 1000);
+          }
+        } catch (err) {
+          components.setButtonLoading(submitBtn, false, 'Create Account');
+
+          if (err.details && typeof err.details === 'object' && !Array.isArray(err.details)) {
+            for (const [key, msg] of Object.entries(err.details)) {
+              showFieldError(key, msg);
+            }
+            showAlert(err.message || 'Please fix the errors below.');
+          } else {
+            showAlert(api.getErrorMessage(err));
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

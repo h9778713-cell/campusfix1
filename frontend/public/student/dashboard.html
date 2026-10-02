@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — CampusFix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <!-- Header with Student Welcome and Action -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 0.25rem;">
+            Student Portal
+          </h1>
+          <p style="color: var(--color-text-muted); font-size: 0.9375rem;" id="student-welcome-text">
+            Welcome back! Monitor your facility reports and maintenance status.
+          </p>
+        </div>
+        <div>
+          <a href="/student/submit.html" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Report New Issue</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Real Dynamic Metrics -->
+      <div class="stats-grid" id="stats-container" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <div class="stat-label">Total Filed</div>
+          <div class="stat-value" id="stat-total" style="color: var(--color-primary);">-</div>
+          <div class="stat-desc">All submitted grievances</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending Review</div>
+          <div class="stat-value" id="stat-pending" style="color: var(--status-pending);">-</div>
+          <div class="stat-desc">Awaiting triage</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="stat-progress" style="color: var(--status-progress);">-</div>
+          <div class="stat-desc">Assigned & being repaired</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Resolved</div>
+          <div class="stat-value" id="stat-resolved" style="color: var(--status-resolved);">-</div>
+          <div class="stat-desc">Fix completed by facility team</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Closed</div>
+          <div class="stat-value" id="stat-closed" style="color: var(--status-closed);">-</div>
+          <div class="stat-desc">Archived & finalized</div>
+        </div>
+      </div>
+
+      <!-- Recent Grievances Card -->
+      <div class="card" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <h2 style="font-size: 1.125rem; font-weight: 700; color: var(--color-primary-dark);">Recent Maintenance Reports</h2>
+          <a href="/student/complaints.html" style="font-size: 0.875rem; font-weight: 600; color: var(--color-primary-light); text-decoration: none;">
+            View All Reports &rarr;
+          </a>
+        </div>
+
+        <div id="table-loading" style="text-align: center; padding: 2.5rem 0;">
+          <div class="spinner"></div>
+          <p style="margin-top: 0.75rem; color: var(--color-text-muted); font-size: 0.875rem;">Loading grievances...</p>
+        </div>
+
+        <div id="table-wrapper" class="table-container" style="display: none;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Title & Location</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Date Filed</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <p style="font-size: 1rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.25rem;">No maintenance issues reported yet</p>
+          <p style="color: var(--color-text-muted); font-size: 0.875rem; max-width: 400px; margin: 0 auto 1.25rem;">
+            When you encounter broken facilities, electrical, plumbing, or classroom issues, submit a ticket here.
+          </p>
+          <a href="/student/submit.html" class="btn btn-primary btn-sm">Report Your First Issue</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Guard route: student role required
+      const user = auth.requireAuth('student');
+      if (!user) return;
+
+      components.renderNavbar();
+
+      const welcomeEl = document.getElementById('student-welcome-text');
+      if (user.fullName) {
+        welcomeEl.textContent = `Welcome back, ${user.fullName}! Roll No: ${user.studentId || 'N/A'}`;
+      }
+
+      // 2. Load Stats and Recent Complaints concurrently
+      try {
+        const [statsRes, complaintsRes] = await Promise.all([
+          api.get('/complaints/my/stats'),
+          api.get('/complaints/my?limit=5&page=1')
+        ]);
+
+        // Render Stats
+        if (statsRes.success && statsRes.data) {
+          const s = statsRes.data;
+          document.getElementById('stat-total').textContent = s.totalComplaints || 0;
+          document.getElementById('stat-pending').textContent = s.pendingCount || 0;
+          document.getElementById('stat-progress').textContent = s.inProgressCount || 0;
+          document.getElementById('stat-resolved').textContent = s.resolvedCount || 0;
+          document.getElementById('stat-closed').textContent = s.closedCount || 0;
+        }
+
+        // Render Recent Complaints
+        document.getElementById('table-loading').style.display = 'none';
+
+        const complaints = complaintsRes.data?.complaints || [];
+        if (complaints.length === 0) {
+          document.getElementById('empty-state').style.display = 'block';
+        } else {
+          document.getElementById('table-wrapper').style.display = 'block';
+          const tbody = document.getElementById('complaints-tbody');
+          tbody.innerHTML = complaints.map(c => `
+            <tr>
+              <td>
+                <span style="font-family: monospace; font-weight: 700; color: var(--color-primary-light); font-size: 0.8125rem;">
+                  ${components.escapeHtml(c.complaintCode)}
+                </span>
+              </td>
+              <td>
+                <div style="font-weight: 600; color: var(--color-primary-dark); font-size: 0.875rem;">
+                  ${components.escapeHtml(c.title)}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+                  ${components.escapeHtml(c.building)}${c.roomNumber ? ' &bull; Rm ' + components.escapeHtml(c.roomNumber) : ''}
+                </div>
+              </td>
+              <td style="font-size: 0.8125rem; color: var(--color-text);">
+                ${components.escapeHtml(c.categoryName || 'General')}
+              </td>
+              <td>${components.createPriorityTag(c.priority)}</td>
+              <td>${components.createBadge(c.status)}</td>
+              <td style="font-size: 0.8125rem; color: var(--color-text-muted); white-space: nowrap;">
+                ${components.formatDate(c.createdAt)}
+              </td>
+              <td style="text-align: right;">
+                <a href="/student/details.html?id=${c.id}" class="btn btn-secondary btn-sm">
+                  View
+                </a>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        document.getElementById('table-loading').innerHTML = `
+          <div style="color: var(--status-rejected); padding: 1.5rem;">
+            Failed to load dashboard data: ${components.escapeHtml(err.message || 'Server error')}
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

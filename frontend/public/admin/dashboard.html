@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard & Analytics — CampusFix</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <!-- Admin Header -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 0.25rem;">
+            Facilities Administration Center & Analytics
+          </h1>
+          <p style="color: var(--color-text-muted); font-size: 0.9375rem;" id="admin-welcome-text">
+            Campus-wide maintenance triage, departmental workload, and real-time resolution metrics.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+          <button id="btn-refresh" class="btn btn-secondary" style="font-size: 0.8125rem; display: flex; align-items: center; gap: 0.35rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            <span>Refresh</span>
+          </button>
+          <a href="/admin/complaints.html?status=Pending" class="btn btn-secondary" style="font-size: 0.8125rem; border-color: var(--status-pending); color: var(--status-pending);">
+            Pending Triage
+          </a>
+          <a href="/admin/complaints.html?priority=Critical" class="btn btn-secondary" style="font-size: 0.8125rem; border-color: var(--status-rejected); color: var(--status-rejected);">
+            Critical Urgency
+          </a>
+          <a href="/admin/complaints.html" class="btn btn-primary" style="font-size: 0.8125rem;">
+            Management Console
+          </a>
+        </div>
+      </div>
+
+      <!-- Global Alert / Error Container -->
+      <div id="dashboard-alert" style="display: none; margin-bottom: 1.5rem;"></div>
+
+      <!-- Real Dynamic Summary Metric Cards (8 Total Cards) -->
+      <div class="stats-grid" id="stats-container" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <a href="/admin/complaints.html" class="stat-card" style="text-decoration: none; display: block;">
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-value" id="stat-total" style="color: var(--color-primary);">-</div>
+          <div class="stat-desc">All time logged</div>
+        </a>
+        <a href="/admin/complaints.html?status=Pending" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--status-pending);">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="stat-pending" style="color: var(--status-pending);">-</div>
+          <div class="stat-desc">Awaiting triage</div>
+        </a>
+        <a href="/admin/complaints.html?status=In%20Progress" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--status-progress);">
+          <div class="stat-label">In Progress</div>
+          <div class="stat-value" id="stat-progress" style="color: var(--status-progress);">-</div>
+          <div class="stat-desc">Under active repair</div>
+        </a>
+        <a href="/admin/complaints.html?priority=Critical" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--priority-critical);">
+          <div class="stat-label">Critical</div>
+          <div class="stat-value" id="stat-critical" style="color: var(--priority-critical);">-</div>
+          <div class="stat-desc">Safety/high risk</div>
+        </a>
+        <a href="/admin/complaints.html?status=Resolved" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--status-resolved);">
+          <div class="stat-label">Resolved</div>
+          <div class="stat-value" id="stat-resolved" style="color: var(--status-resolved);">-</div>
+          <div class="stat-desc">Repairs done</div>
+        </a>
+        <a href="/admin/complaints.html?status=Closed" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--status-closed);">
+          <div class="stat-label">Closed</div>
+          <div class="stat-value" id="stat-closed" style="color: var(--status-closed);">-</div>
+          <div class="stat-desc">Confirmed closed</div>
+        </a>
+        <a href="/admin/complaints.html?status=Rejected" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--status-rejected);">
+          <div class="stat-label">Rejected</div>
+          <div class="stat-value" id="stat-rejected" style="color: var(--status-rejected);">-</div>
+          <div class="stat-desc">Invalid/duplicate</div>
+        </a>
+        <a href="/admin/complaints.html?status=Pending" class="stat-card" style="text-decoration: none; display: block; border-top: 3px solid var(--priority-high);">
+          <div class="stat-label">Unassigned</div>
+          <div class="stat-value" id="stat-unassigned" style="color: var(--priority-high);">-</div>
+          <div class="stat-desc">Active backlog</div>
+        </a>
+      </div>
+
+      <!-- Analytics Visualizations Grid -->
+      <div class="analytics-grid">
+        <!-- 1. Grievance Status Breakdown -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Grievances by Status</h2>
+              <p class="chart-subtitle">Campus ticket distribution across resolution stages</p>
+            </div>
+            <a href="/admin/complaints.html" style="font-size: 0.75rem; color: var(--color-primary-light); text-decoration: none; font-weight: 600;">View Queue &rarr;</a>
+          </div>
+          <div class="chart-body" id="status-chart-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- 2. Priority Urgency Breakdown -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Urgency & Priority Distribution</h2>
+              <p class="chart-subtitle">Relative proportion of safety risk and severity</p>
+            </div>
+            <a href="/admin/complaints.html?priority=Critical" style="font-size: 0.75rem; color: var(--priority-critical); text-decoration: none; font-weight: 600;">Critical First &rarr;</a>
+          </div>
+          <div class="chart-body" id="priority-chart-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- 3. Trend Over Time (Multi-Series Line Chart) -->
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Grievance Trends & Velocity</h2>
+              <p class="chart-subtitle">Submissions filed vs maintenance resolutions over time</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <label for="trend-days-select" style="font-size: 0.75rem; color: var(--color-text-muted);">Range:</label>
+              <select id="trend-days-select" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text-main);">
+                <option value="7">Last 7 Days</option>
+                <option value="14" selected>Last 14 Days</option>
+                <option value="30">Last 30 Days</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-body" id="trend-chart-body" style="min-height: 240px;">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- 4. Category Breakdown -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Top Maintenance Categories</h2>
+              <p class="chart-subtitle">Tickets by facility system and operational trade</p>
+            </div>
+          </div>
+          <div class="chart-body" id="category-chart-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- 5. Location Distribution -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Campus Facilities & Buildings</h2>
+              <p class="chart-subtitle">Locations with highest maintenance volume</p>
+            </div>
+          </div>
+          <div class="chart-body" id="location-chart-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- 6. Department Workload & Backlog -->
+        <div class="chart-card" style="grid-column: 1 / -1;">
+          <div class="chart-header">
+            <div>
+              <h2 class="chart-title">Department Workload & Active Backlog</h2>
+              <p class="chart-subtitle">Assigned tickets and critical safety tasks per facilities department</p>
+            </div>
+          </div>
+          <div class="chart-body" id="workload-chart-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Activity Stream & Triage Queue -->
+      <div style="display: grid; grid-template-columns: 1fr 1.25fr; gap: 1.5rem; margin-bottom: 2rem;" class="admin-bottom-grid">
+        <!-- Live Recent Activity Feed -->
+        <div class="card" style="padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h2 style="font-size: 1.125rem; font-weight: 700; color: var(--color-primary-dark);">Recent Activity Feed</h2>
+              <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.15rem;">Live audit stream of status updates & assignments</p>
+            </div>
+          </div>
+          <div id="activity-body">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- Live Triage Queue Table -->
+        <div class="card" style="padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h2 style="font-size: 1.125rem; font-weight: 700; color: var(--color-primary-dark);">Live Grievance Triage Queue</h2>
+              <p style="font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.15rem;">Recent tickets requiring review or action</p>
+            </div>
+            <a href="/admin/complaints.html" style="font-size: 0.8125rem; font-weight: 600; color: var(--color-primary-light); text-decoration: none;">
+              Full Queue &rarr;
+            </a>
+          </div>
+
+          <div id="table-loading" style="text-align: center; padding: 2.5rem 0;">
+            <div class="spinner"></div>
+            <p style="margin-top: 0.75rem; color: var(--color-text-muted); font-size: 0.875rem;">Loading grievances...</p>
+          </div>
+
+          <div id="table-wrapper" class="table-container" style="display: none;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Title & Location</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="complaints-tbody"></tbody>
+            </table>
+          </div>
+
+          <div id="empty-state" class="empty-state" style="display: none; padding: 2rem 1rem;">
+            <p style="font-size: 0.9375rem; font-weight: 600; color: var(--color-text); margin-bottom: 0.25rem;">Queue is clear!</p>
+            <p style="color: var(--color-text-muted); font-size: 0.8125rem;">No active maintenance grievances logged.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    @media (max-width: 900px) {
+      .admin-bottom-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/charts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Guard route: admin role required
+      const user = auth.requireAuth('admin');
+      if (!user) return;
+
+      components.renderNavbar();
+
+      const welcomeEl = document.getElementById('admin-welcome-text');
+      if (user.fullName) {
+        welcomeEl.textContent = `Administrator: ${user.fullName} (${user.email}) — Live Facility Operations`;
+      }
+
+      // Attach refresh and timeframe event handlers
+      document.getElementById('btn-refresh').addEventListener('click', loadDashboardData);
+      document.getElementById('trend-days-select').addEventListener('change', (e) => {
+        loadTrends(parseInt(e.target.value, 10));
+      });
+
+      // Initial Load
+      await loadDashboardData();
+    });
+
+    /**
+     * Load All Dashboard Analytics and Live Triage Data
+     */
+    async function loadDashboardData() {
+      clearAlert();
+
+      try {
+        // Fetch full analytics suite and recent complaints in parallel
+        const [analyticsRes, complaintsRes] = await Promise.all([
+          api.get('/admin/analytics'),
+          api.get('/admin/complaints?limit=6&sortBy=createdAt&sortOrder=DESC')
+        ]);
+
+        if (!analyticsRes.success) {
+          throw new Error(analyticsRes.message || 'Failed to retrieve analytics data.');
+        }
+
+        const data = analyticsRes.data;
+
+        // 1. Render Summary Metrics
+        renderSummaryMetrics(data.overview);
+
+        // 2. Render Status & Priority Distributions
+        renderStatusDistribution(data.byStatus);
+        renderPriorityDistribution(data.byPriority);
+
+        // 3. Render Trends
+        charts.renderTrendChart('trend-chart-body', data.trends);
+
+        // 4. Render Categories
+        renderCategoryDistribution(data.byCategory);
+
+        // 5. Render Locations
+        renderLocationDistribution(data.byLocation);
+
+        // 6. Render Department Workload
+        charts.renderDepartmentWorkload('workload-chart-body', data.workload);
+
+        // 7. Render Recent Activity Feed
+        charts.renderRecentActivity('activity-body', data.recentActivity);
+
+        // 8. Render Live Complaints Table
+        renderTriageQueue(complaintsRes.data?.complaints || []);
+
+      } catch (err) {
+        showAlert('danger', `Unable to refresh admin analytics: ${components.escapeHtml(err.message || 'Server error')}`);
+      }
+    }
+
+    /**
+     * Re-fetch Grievance Trends for selected timeframe
+     */
+    async function loadTrends(days) {
+      const container = document.getElementById('trend-chart-body');
+      container.innerHTML = '<div class="spinner"></div>';
+      try {
+        const res = await api.get(`/admin/analytics/trends?days=${days}`);
+        if (res.success && res.data) {
+          charts.renderTrendChart('trend-chart-body', res.data);
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color: var(--status-rejected); font-size: 0.8125rem;">Failed to load trend data.</p>`;
+      }
+    }
+
+    /**
+     * Render Top 8 Metric Summary Cards
+     */
+    function renderSummaryMetrics(s) {
+      if (!s) return;
+      document.getElementById('stat-total').textContent = s.totalComplaints || 0;
+      document.getElementById('stat-pending').textContent = s.pendingCount || 0;
+      document.getElementById('stat-progress').textContent = s.inProgressCount || 0;
+      document.getElementById('stat-critical').textContent = s.criticalCount || 0;
+      document.getElementById('stat-resolved').textContent = s.resolvedCount || 0;
+      document.getElementById('stat-closed').textContent = s.closedCount || 0;
+      document.getElementById('stat-rejected').textContent = s.rejectedCount || 0;
+      document.getElementById('stat-unassigned').textContent = s.unassignedCount || 0;
+    }
+
+    /**
+     * Render Grievances by Status Breakdown
+     */
+    function renderStatusDistribution(byStatus) {
+      const items = (byStatus || []).map(item => ({
+        label: item.status,
+        count: item.count,
+        percentage: item.percentage,
+        color: charts.colors[item.status],
+        link: `/admin/complaints.html?status=${encodeURIComponent(item.status)}`
+      }));
+      charts.renderHorizontalBars('status-chart-body', items, {
+        emptyMessage: 'No grievance status data available.'
+      });
+    }
+
+    /**
+     * Render Priority Breakdown
+     */
+    function renderPriorityDistribution(byPriority) {
+      const items = (byPriority || []).map(item => ({
+        label: item.priority,
+        count: item.count,
+        percentage: item.percentage,
+        color: charts.colors[item.priority],
+        link: `/admin/complaints.html?priority=${encodeURIComponent(item.priority)}`
+      }));
+      charts.renderHorizontalBars('priority-chart-body', items, {
+        emptyMessage: 'No priority distribution data available.'
+      });
+    }
+
+    /**
+     * Render Categories Distribution
+     */
+    function renderCategoryDistribution(categories) {
+      const items = (categories || []).map(cat => ({
+        label: cat.categoryName,
+        count: cat.count,
+        subtext: cat.departmentName || '',
+        color: 'var(--color-primary-light)',
+        link: `/admin/complaints.html?category=${cat.categoryId}`
+      }));
+      charts.renderHorizontalBars('category-chart-body', items, {
+        emptyMessage: 'No category complaints logged yet.'
+      });
+    }
+
+    /**
+     * Render Campus Locations Breakdown
+     */
+    function renderLocationDistribution(locations) {
+      const items = (locations || []).map(loc => ({
+        label: loc.building,
+        count: loc.totalComplaints,
+        subtext: `${loc.activeCount} active`,
+        color: loc.activeCount > 0 ? 'var(--status-pending)' : 'var(--status-resolved)',
+        link: `/admin/complaints.html?search=${encodeURIComponent(loc.building)}`
+      }));
+      charts.renderHorizontalBars('location-chart-body', items, {
+        emptyMessage: 'No location grievance data recorded.'
+      });
+    }
+
+    /**
+     * Render Live Triage Queue Table
+     */
+    function renderTriageQueue(complaints) {
+      const loading = document.getElementById('table-loading');
+      const wrapper = document.getElementById('table-wrapper');
+      const empty = document.getElementById('empty-state');
+      const tbody = document.getElementById('complaints-tbody');
+
+      loading.style.display = 'none';
+
+      if (!complaints || complaints.length === 0) {
+        wrapper.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      wrapper.style.display = 'block';
+
+      tbody.innerHTML = complaints.map(c => `
+        <tr>
+          <td>
+            <span style="font-family: monospace; font-weight: 700; color: var(--color-primary-light); font-size: 0.8125rem;">
+              ${components.escapeHtml(c.complaintCode)}
+            </span>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: var(--color-primary-dark); font-size: 0.875rem;">
+              ${components.escapeHtml(c.title)}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--color-text-muted);">
+              ${components.escapeHtml(c.building)}${c.roomNumber ? ' &bull; Rm ' + components.escapeHtml(c.roomNumber) : ''}
+            </div>
+          </td>
+          <td>${components.createPriorityTag(c.priority)}</td>
+          <td>${components.createBadge(c.status)}</td>
+          <td style="text-align: right;">
+            <a href="/admin/details.html?id=${c.id}" class="btn btn-primary btn-sm">
+              Manage
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function showAlert(type, message) {
+      const alertEl = document.getElementById('dashboard-alert');
+      alertEl.style.display = 'block';
+      alertEl.innerHTML = components.createAlert(type, message);
+    }
+
+    function clearAlert() {
+      const alertEl = document.getElementById('dashboard-alert');
+      alertEl.style.display = 'none';
+      alertEl.innerHTML = '';
+    }
+  </script>
+</body>
+</html>
